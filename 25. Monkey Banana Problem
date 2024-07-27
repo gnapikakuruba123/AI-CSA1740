@@ -1,0 +1,31 @@
+% Define the initial state
+% state(MonkeyPosition, BoxPosition, MonkeyOnBox, HasBanana)
+initial_state(state(at_door, at_window, false, false)).
+
+% Define the goal state
+goal_state(state(_, _, _, true)).
+
+% Define the actions
+move(state(at_door, Box, OnBox, HasBanana), walk_door_to_window, state(at_window, Box, OnBox, HasBanana)).
+move(state(at_window, Box, OnBox, HasBanana), walk_window_to_door, state(at_door, Box, OnBox, HasBanana)).
+move(state(Place, Place, false, HasBanana), push_box, state(NewPlace, NewPlace, false, HasBanana)) :-
+    adjacent(Place, NewPlace).
+move(state(Place, Place, false, HasBanana), climb_box, state(Place, Place, true, HasBanana)).
+move(state(Place, Place, true, false), grasp_banana, state(Place, Place, true, true)).
+
+% Define adjacent positions
+adjacent(at_door, at_window).
+adjacent(at_window, at_door).
+
+% Define the solver
+solve(State, _, []) :-
+    goal_state(State).
+solve(State, Visited, [Action|Actions]) :-
+    move(State, Action, NewState),
+    \+ member(NewState, Visited),
+    solve(NewState, [NewState|Visited], Actions).
+
+% Find the solution
+find_solution(Actions) :-
+    initial_state(InitialState),
+    solve(InitialState, [InitialState], Actions).
